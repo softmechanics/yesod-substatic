@@ -22,12 +22,20 @@ mkYesodSub "Sub"
   [ClassP ''Yesod [VarT $ mkName "master"]] 
   [$parseRoutes|
 / RootR GET
-/static StaticR Static getStatic
+/static/*Strings StaticR GET
 |]
 
 
 getRootR :: Yesod y => GHandler Sub y RepHtml
-getRootR = defaultLayout [$hamlet| 
-  @StaticR hello_txt@
+getRootR = do
+  rtm <- getRouteToMaster
+  defaultLayout [$hamlet| 
+  %a!href=@rtm toStaticR hello_txt@ hello.txt
+  %br
+  %a!href=@rtm toStaticR dir_goodbye_html@ dir/goodbye.html
 |]
 
+toStaticR :: StaticRoute -> SubRoute
+toStaticR (StaticRoute pieces _) = StaticR pieces
+
+getStaticR = getStaticHandler subStatic toStaticR
